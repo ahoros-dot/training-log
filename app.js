@@ -1509,7 +1509,16 @@ function init() {
   bindProfile("profileTargetFat", "targetBodyFat", true);
 
   // データ管理
-  $("btnExport").addEventListener("click", exportData);
+  $("btnExport").addEventListener("click", () => {
+    const n = Object.keys(data.records).length;
+    if (!confirm(`記録データ（${n}日分）をJSONファイルとして保存（エクスポート）します。よろしいですか？`)) return;
+    exportData();
+  });
+  $("importLabel").addEventListener("click", e => {
+    if (!confirm("バックアップのJSONファイルをインポート（読み込み）します。同じ日付の既存データは上書きされます。ファイルを選択しますか？")) {
+      e.preventDefault();
+    }
+  });
   $("importFile").addEventListener("change", e => {
     if (e.target.files[0]) importData(e.target.files[0]);
     e.target.value = "";
