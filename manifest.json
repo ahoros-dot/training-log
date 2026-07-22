@@ -1,0 +1,19 @@
+{
+  "name": "トレーニング記録・分析",
+  "short_name": "トレ記録",
+  "description": "毎日のトレーニング記録を蓄積し、週間・月間の変化や傾向を分析するアプリ",
+  "lang": "ja",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#F5F6FA",
+  "theme_color": "#4F46E5",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

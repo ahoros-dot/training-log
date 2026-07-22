@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#4F46E5">
+<title>トレーニング記録・分析</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icon.svg">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="app-header">
+  <h1>トレーニング記録・分析</h1>
+  <div class="header-date" id="headerDate"></div>
+</header>
+
+<main id="main">
+
+  <!-- ============ 記録ビュー ============ -->
+  <section id="view-record" class="view">
+    <div class="card">
+      <div class="date-row">
+        <button class="date-nav" id="datePrev" aria-label="前日">◀</button>
+        <input type="date" id="recordDate" class="date-input">
+        <button class="date-nav" id="dateNext" aria-label="翌日">▶</button>
+        <button class="btn-small" id="dateToday">今日</button>
+      </div>
+      <div class="daytype-row">
+        <button class="daytype-btn" data-daytype="training" id="btnTraining">トレーニング日</button>
+        <button class="daytype-btn" data-daytype="rest" id="btnRest">休養日</button>
+      </div>
+    </div>
+
+    <div class="card" id="exerciseCard">
+      <h2>トレーニング内容</h2>
+      <ul class="exercise-list" id="exerciseList"></ul>
+      <button class="btn-outline" id="btnAddExercise">＋ 種目を追加</button>
+
+      <form id="exerciseForm" class="exercise-form hidden">
+        <button type="button" class="btn-outline wide" id="btnPickByPart">🎯 鍛えたい部位から種目を選ぶ</button>
+        <div id="partPicker" class="part-picker hidden">
+          <div class="form-grid3">
+            <div>
+              <label>大分類</label>
+              <select id="catL1"><option value="">選択</option></select>
+            </div>
+            <div>
+              <label>中分類</label>
+              <select id="catL2" disabled><option value="">--</option></select>
+            </div>
+            <div>
+              <label>小分類</label>
+              <select id="catL3" disabled><option value="">--</option></select>
+            </div>
+          </div>
+          <div class="cat-results" id="catResults"></div>
+        </div>
+        <div class="form-row">
+          <label>種別</label>
+          <select id="exType">
+            <option value="strength">筋トレ（重量×回数×セット）</option>
+            <option value="cardio">有酸素（距離・時間）</option>
+            <option value="boxing">ボクシング（ラウンド）</option>
+            <option value="reps">回数系（縄跳びなど）</option>
+            <option value="other">その他</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>種目名</label>
+          <div class="name-row">
+            <input type="text" id="exName" placeholder="例：ベンチプレス" list="exNameList" required>
+            <button type="button" class="lookup-btn" id="btnLookup" title="この種目を調べる">🔍 調べる</button>
+          </div>
+          <datalist id="exNameList"></datalist>
+        </div>
+        <div class="form-row">
+          <label>時間帯</label>
+          <select id="exTimeSlot">
+            <option value="">未指定</option>
+            <option value="朝">朝</option>
+            <option value="昼">昼</option>
+            <option value="夕方">夕方</option>
+            <option value="夜">夜</option>
+          </select>
+        </div>
+
+        <div class="type-fields" data-for="strength">
+          <div class="form-grid3">
+            <div><label>重量(kg)</label><input type="number" id="exWeight" step="0.5" min="0" inputmode="decimal"></div>
+            <div><label>回数</label><input type="number" id="exReps" min="0" inputmode="numeric"></div>
+            <div><label>セット</label><input type="number" id="exSets" min="0" inputmode="numeric"></div>
+          </div>
+        </div>
+        <div class="type-fields hidden" data-for="cardio">
+          <div class="form-grid2">
+            <div><label>距離(km)</label><input type="number" id="exDistance" step="0.1" min="0" inputmode="decimal"></div>
+            <div><label>時間(分)</label><input type="number" id="exCardioMin" min="0" inputmode="numeric"></div>
+          </div>
+        </div>
+        <div class="type-fields hidden" data-for="boxing">
+          <div class="form-grid3">
+            <div><label>1R(分)</label><input type="number" id="exRoundMin" step="0.5" min="0" inputmode="decimal"></div>
+            <div><label>ラウンド数</label><input type="number" id="exRounds" min="0" inputmode="numeric"></div>
+            <div><label>休憩(分)</label><input type="number" id="exRest" step="0.5" min="0" inputmode="decimal"></div>
+          </div>
+        </div>
+        <div class="type-fields hidden" data-for="reps">
+          <div class="form-grid2">
+            <div><label>回数</label><input type="number" id="exCount" min="0" inputmode="numeric"></div>
+            <div><label>時間(分)</label><input type="number" id="exRepsMin" min="0" inputmode="numeric"></div>
+          </div>
+        </div>
+        <div class="type-fields hidden" data-for="other">
+          <div class="form-grid2">
+            <div><label>時間(分)</label><input type="number" id="exOtherMin" min="0" inputmode="numeric"></div>
+            <div><label>メモ</label><input type="text" id="exMemo" placeholder="内容"></div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-outline" id="btnCancelExercise">キャンセル</button>
+          <button type="submit" class="btn-primary" id="btnSaveExercise">追加する</button>
+        </div>
+      </form>
+    </div>
+
+    <div class="card">
+      <h2>コンディション</h2>
+      <div class="cond-grid">
+        <div class="form-row">
+          <label>合計運動時間（分）</label>
+          <input type="number" id="condTotalMin" min="0" inputmode="numeric" placeholder="記録なし">
+        </div>
+        <div class="form-row">
+          <label>疲労度（1〜10）</label>
+          <select id="condFatigue">
+            <option value="">記録なし</option>
+            <option value="1">1（ほぼ疲労なし）</option>
+            <option value="2">2（ほぼ疲労なし）</option>
+            <option value="3">3（軽い疲労）</option>
+            <option value="4">4（軽い疲労）</option>
+            <option value="5">5（中程度）</option>
+            <option value="6">6（中程度）</option>
+            <option value="7">7（強い疲労）</option>
+            <option value="8">8（強い疲労）</option>
+            <option value="9">9（非常に強い）</option>
+            <option value="10">10（非常に強い）</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>睡眠時間（時間）</label>
+          <input type="number" id="condSleepH" step="0.5" min="0" inputmode="decimal" placeholder="記録なし">
+        </div>
+        <div class="form-row">
+          <label>睡眠の状態</label>
+          <input type="text" id="condSleepNote" placeholder="例：よく眠れた／途中で起きた">
+        </div>
+        <div class="form-row full">
+          <label>痛み・違和感</label>
+          <input type="text" id="condPain" placeholder="例：右膝に軽い違和感（なしの場合は空欄）">
+        </div>
+        <div class="form-row">
+          <label>体重（kg）</label>
+          <input type="number" id="condWeight" step="0.1" min="0" inputmode="decimal" placeholder="記録なし">
+        </div>
+        <div class="form-row">
+          <label>体脂肪率（%）</label>
+          <input type="number" id="condBodyFat" step="0.1" min="0" inputmode="decimal" placeholder="記録なし">
+        </div>
+        <div class="form-row">
+          <label>歩数</label>
+          <input type="number" id="condSteps" min="0" inputmode="numeric" placeholder="記録なし">
+        </div>
+        <div class="form-row">
+          <label>活動内容（休養日など）</label>
+          <input type="text" id="condActivity" placeholder="例：ウォーキング、サウナ">
+        </div>
+        <div class="form-row full">
+          <label>感想</label>
+          <textarea id="condComment" rows="2" placeholder="今日の感想"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="record-actions">
+      <button class="btn-primary wide" id="btnSummary">今日の記録をまとめる</button>
+      <button class="btn-danger-outline wide" id="btnDeleteDay">この日の記録を削除</button>
+    </div>
+    <div class="save-hint" id="saveHint"></div>
+  </section>
+
+  <!-- ============ 履歴ビュー ============ -->
+  <section id="view-history" class="view hidden">
+    <div class="card">
+      <div class="date-row">
+        <button class="date-nav" id="histPrev">◀</button>
+        <input type="month" id="histMonth" class="date-input">
+        <button class="date-nav" id="histNext">▶</button>
+      </div>
+    </div>
+    <div id="historyList"></div>
+  </section>
+
+  <!-- ============ 分析ビュー ============ -->
+  <section id="view-analysis" class="view hidden">
+    <div class="card">
+      <div class="seg-row">
+        <button class="seg-btn active" data-mode="week" id="segWeek">週間分析</button>
+        <button class="seg-btn" data-mode="month" id="segMonth">月間分析</button>
+      </div>
+      <div class="date-row">
+        <button class="date-nav" id="anaPrev">◀</button>
+        <div class="ana-period" id="anaPeriod"></div>
+        <button class="date-nav" id="anaNext">▶</button>
+      </div>
+    </div>
+    <div id="analysisBody"></div>
+  </section>
+
+  <!-- ============ データビュー ============ -->
+  <section id="view-data" class="view hidden">
+    <div class="card">
+      <h2>現在の主な目標</h2>
+      <ul class="goal-list" id="goalList"></ul>
+      <button class="btn-outline" id="btnAddGoal">＋ 目標を追加</button>
+      <form id="goalForm" class="goal-form hidden">
+        <div class="form-row">
+          <label id="goalFormLabel">新しい目標</label>
+          <input type="text" id="goalInput" placeholder="例：体脂肪率17％前後を目指す" required>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn-outline" id="btnCancelGoal">キャンセル</button>
+          <button type="submit" class="btn-primary">保存する</button>
+        </div>
+      </form>
+      <p class="note">目標をタップすると編集できます。</p>
+    </div>
+    <div class="card">
+      <h2>プロフィール</h2>
+      <div class="cond-grid">
+        <div class="form-row">
+          <label>身長（cm）</label>
+          <input type="number" id="profileHeight" step="0.1" min="0" inputmode="decimal" placeholder="例：172.5">
+        </div>
+        <div class="form-row">
+          <label>性別</label>
+          <select id="profileGender">
+            <option value="">未設定</option>
+            <option value="male">男性</option>
+            <option value="female">女性</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label>生年月日</label>
+          <input type="date" id="profileBirth">
+        </div>
+        <div class="form-row">
+          <label>目標体重（kg）</label>
+          <input type="number" id="profileTargetWeight" step="0.1" min="0" inputmode="decimal" placeholder="例：75.0">
+        </div>
+        <div class="form-row">
+          <label>目標体脂肪率（％）</label>
+          <input type="number" id="profileTargetFat" step="0.1" min="0" inputmode="decimal" placeholder="例：17.0">
+        </div>
+      </div>
+      <div class="profile-stats" id="profileStats"></div>
+      <p class="note">身長を設定すると体重記録のある日にBMIを自動表示。性別・生年月日も設定すると基礎代謝と最大心拍数の目安を計算します。目標体重・体脂肪率は分析で現在値との差を表示します。</p>
+    </div>
+    <div class="card">
+      <h2>データ管理</h2>
+      <p class="note">データはこの端末のブラウザ内（localStorage）に保存されます。機種変更やブラウザ変更の前にエクスポートしてください。</p>
+      <div class="data-actions">
+        <button class="btn-primary wide" id="btnExport">エクスポート（JSON保存）</button>
+        <label class="btn-outline wide file-label">
+          インポート（JSON読込）
+          <input type="file" id="importFile" accept="application/json" hidden>
+        </label>
+        <button class="btn-danger-outline wide" id="btnWipe">全データを削除</button>
+      </div>
+      <p class="note" id="dataStats"></p>
+    </div>
+  </section>
+
+</main>
+
+<!-- まとめモーダル -->
+<div class="modal-overlay hidden" id="modalOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="modalTitle">記録のまとめ</h2>
+      <button class="modal-close" id="modalClose">✕</button>
+    </div>
+    <pre class="summary-text" id="summaryText"></pre>
+    <div class="ai-eval-panel hidden" id="aiEvalPanel">
+      <p class="note">✓ 評価用プロンプト（記録＋目標＋評価の指示）をコピーしました。下のAIを開いて、<b>貼り付けて送信</b>してください。</p>
+      <div class="link-grid">
+        <a class="link-btn" href="https://claude.ai/new" target="_blank" rel="noopener">Claude を開く</a>
+        <a class="link-btn" href="https://chatgpt.com/" target="_blank" rel="noopener">ChatGPT を開く</a>
+      </div>
+    </div>
+    <div class="form-actions modal-actions">
+      <button class="btn-outline" id="btnEditDay">✏️ 編集・追加</button>
+      <button class="btn-outline" id="btnAiEval">🤖 AIで評価</button>
+      <button class="btn-outline" id="btnCopySummary">コピー</button>
+      <button class="btn-primary" id="btnCloseSummary">閉じる</button>
+    </div>
+  </div>
+</div>
+
+<!-- 種目検索モーダル -->
+<div class="modal-overlay hidden" id="lookupOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h2 id="lookupTitle">種目を調べる</h2>
+      <button class="modal-close" id="lookupClose">✕</button>
+    </div>
+    <div class="lookup-body" id="lookupBody"></div>
+  </div>
+</div>
+
+<nav class="tabbar">
+  <button class="tab active" data-view="record"><span class="tab-icon">✏️</span>記録</button>
+  <button class="tab" data-view="history"><span class="tab-icon">📅</span>履歴</button>
+  <button class="tab" data-view="analysis"><span class="tab-icon">📊</span>分析</button>
+  <button class="tab" data-view="data"><span class="tab-icon">⚙️</span>データ</button>
+</nav>
+
+<div class="toast hidden" id="toast"></div>
+
+<script src="exercises-db.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
