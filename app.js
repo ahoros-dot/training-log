@@ -1253,6 +1253,7 @@ function renderDataStats() {
     $("profileBirthM").value = "";
     $("profileBirthD").value = "";
   }
+  $("profileBirthPicker").value = data.birthDate ?? "";
   $("profileTargetWeight").value = data.targetWeight ?? "";
   $("profileTargetFat").value = data.targetBodyFat ?? "";
   renderProfileStats();
@@ -1545,6 +1546,20 @@ function init() {
   };
   ["profileBirthY", "profileBirthM", "profileBirthD"].forEach(id =>
     $(id).addEventListener("change", onBirthChange));
+
+  // カレンダー入力: 選んだ日付を3欄に反映して同じ保存処理を通す
+  $("profileBirthPicker").addEventListener("change", e => {
+    if (!e.target.value) return;
+    const [y, m, d] = e.target.value.split("-").map(Number);
+    $("profileBirthY").value = y;
+    $("profileBirthM").value = m;
+    $("profileBirthD").value = d;
+    onBirthChange();
+  });
+  $("profileBirthPicker").addEventListener("click", e => {
+    // 対応ブラウザではワンタップでカレンダーを開く
+    try { e.target.showPicker(); } catch {}
+  });
 
   // データ管理
   $("btnExport").addEventListener("click", () => {
