@@ -63,6 +63,7 @@
           <label>種別</label>
           <select id="exType">
             <option value="strength">筋トレ（重量×回数×セット）</option>
+            <option value="bodyweight">自重（回数×セット）</option>
             <option value="cardio">有酸素（距離・時間）</option>
             <option value="boxing">ボクシング（ラウンド）</option>
             <option value="reps">回数系（縄跳びなど）</option>
@@ -98,6 +99,12 @@
             <input type="checkbox" id="exPerHand">
             <span>片手ずつの重量（ダンベル・ケーブルなど）<br><small>右手20kg・左手20kgなら「20」と入力</small></span>
           </label>
+        </div>
+        <div class="type-fields hidden" data-for="bodyweight">
+          <div class="form-grid2">
+            <div><label>回数</label><input type="number" id="exBwReps" min="0" inputmode="numeric"></div>
+            <div><label>セット</label><input type="number" id="exBwSets" min="0" inputmode="numeric"></div>
+          </div>
         </div>
         <div class="type-fields hidden" data-for="cardio">
           <div class="form-grid2">

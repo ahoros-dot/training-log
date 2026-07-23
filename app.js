@@ -15,7 +15,7 @@ const DEFAULT_GOALS = [
   "膝・肘・腰の痛みを悪化させない"
 ];
 const DOW = ["日", "月", "火", "水", "木", "金", "土"];
-const TYPE_LABEL = { strength: "筋トレ", cardio: "有酸素", boxing: "ボクシング", reps: "回数系", other: "その他" };
+const TYPE_LABEL = { strength: "筋トレ", bodyweight: "自重", cardio: "有酸素", boxing: "ボクシング", reps: "回数系", other: "その他" };
 
 /* ============ JST 日付ユーティリティ ============ */
 // 端末のタイムゾーンに関わらず JST の日付を返す
@@ -262,6 +262,12 @@ function exerciseLabel(ex) {
     if (ex.sets != null) p.push(`${ex.sets}セット`);
     return p.join("×") || "詳細なし";
   }
+  if (ex.type === "bodyweight") {
+    const p = [];
+    if (ex.reps != null) p.push(`${ex.reps}回`);
+    if (ex.sets != null) p.push(`${ex.sets}セット`);
+    return p.join("×") || "詳細なし";
+  }
   if (ex.type === "cardio") {
     const p = [];
     if (ex.distance != null) p.push(`${ex.distance}km`);
@@ -372,6 +378,9 @@ function readExerciseForm() {
     ex.reps = numOrNull($("exReps").value);
     ex.sets = numOrNull($("exSets").value);
     if ($("exPerHand").checked) ex.perHand = true;
+  } else if (type === "bodyweight") {
+    ex.reps = numOrNull($("exBwReps").value);
+    ex.sets = numOrNull($("exBwSets").value);
   } else if (type === "cardio") {
     ex.distance = numOrNull($("exDistance").value);
     ex.minutes = numOrNull($("exCardioMin").value);
@@ -389,8 +398,9 @@ function readExerciseForm() {
   return ex;
 }
 function clearExerciseForm() {
-  ["exName", "exWeight", "exReps", "exSets", "exDistance", "exCardioMin",
-   "exRoundMin", "exRounds", "exRest", "exCount", "exRepsMin", "exOtherMin", "exMemo"]
+  ["exName", "exWeight", "exReps", "exSets", "exBwReps", "exBwSets",
+   "exDistance", "exCardioMin", "exRoundMin", "exRounds", "exRest",
+   "exCount", "exRepsMin", "exOtherMin", "exMemo"]
     .forEach(id => { $(id).value = ""; });
   $("exTimeSlot").value = "";
   $("exPerHand").checked = false;
@@ -409,6 +419,9 @@ function fillExerciseForm(ex) {
     $("exReps").value = ex.reps ?? "";
     $("exSets").value = ex.sets ?? "";
     $("exPerHand").checked = !!ex.perHand;
+  } else if (ex.type === "bodyweight") {
+    $("exBwReps").value = ex.reps ?? "";
+    $("exBwSets").value = ex.sets ?? "";
   } else if (ex.type === "cardio") {
     $("exDistance").value = ex.distance ?? "";
     $("exCardioMin").value = ex.minutes ?? "";
@@ -611,7 +624,7 @@ function aggregate(dates) {
       const s = agg.byExercise.get(key);
       s.times++;
       if (ex.sets != null) s.sets += ex.sets;
-      if (ex.reps != null && ex.sets != null) s.reps += ex.reps * ex.sets;
+      if (ex.reps != null) s.reps += ex.reps * (ex.sets != null ? ex.sets : 1);
       if (ex.weight != null) s.maxWeight = s.maxWeight == null ? ex.weight : Math.max(s.maxWeight, ex.weight);
       if (ex.perHand) s.perHand = true;
       if (ex.distance != null) s.distance += ex.distance;
@@ -731,6 +744,9 @@ function buildAnalysisHtml(agg, prevAgg, isWeek, inProgress, effective) {
         if (s.maxWeight != null) detail.push(`最大${s.maxWeight}kg${s.perHand ? "（片手）" : ""}`);
         if (s.sets) detail.push(`計${s.sets}セット`);
         if (s.reps) detail.push(`総回数${s.reps.toLocaleString()}回`);
+      } else if (s.type === "bodyweight") {
+        if (s.sets) detail.push(`計${s.sets}セット`);
+        if (s.reps) detail.push(`総回数${s.reps.toLocaleString()}回`);
       } else if (s.type === "cardio") {
         if (s.distance) detail.push(`計${round1(s.distance)}km`);
         if (s.minutes) detail.push(`計${fmtMinutes(s.minutes)}`);
@@ -748,6 +764,8 @@ function buildAnalysisHtml(agg, prevAgg, isWeek, inProgress, effective) {
         const p = prevAgg.byExercise.get(name);
         if (s.type === "strength" && s.maxWeight != null && p.maxWeight != null)
           cmp = diffBadge(s.maxWeight, p.maxWeight, label + "・kg");
+        else if (s.type === "bodyweight" && s.reps && p.reps)
+          cmp = diffBadge(s.reps, p.reps, label + "・回");
         else if (s.type === "cardio" && s.distance && p.distance)
           cmp = diffBadge(round1(s.distance), round1(p.distance), label + "・km");
         else if (s.type === "boxing" && s.rounds && p.rounds)

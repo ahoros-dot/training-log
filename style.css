@@ -141,6 +141,7 @@ main { max-width: 640px; margin: 0 auto; padding: 12px; }
   background: var(--primary-light);
   color: var(--primary-dark);
 }
+.ex-badge.bodyweight { background: #ECFEFF; color: #0E7490; }
 .ex-badge.cardio { background: #ECFDF5; color: #047857; }
 .ex-badge.boxing { background: #FDF2F8; color: #BE185D; }
 .ex-badge.reps   { background: #FFFBEB; color: #B45309; }
