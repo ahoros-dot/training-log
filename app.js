@@ -1011,7 +1011,9 @@ function onCatL1Change() {
 }
 function onCatL2Change() {
   const l1 = $("catL1").value, l2 = $("catL2").value;
-  const l3s = (l1 && l2) ? [...CAT_TREE.get(l1).get(l2).keys()] : [];
+  const l3s = (l1 && l2)
+    ? sortByOrder(CAT_TREE.get(l1).get(l2).keys(), CAT_L3_ORDER[l2] || [])
+    : [];
   fillSelect($("catL3"), l3s, l2 ? "すべて" : "--");
   renderCatResults();
 }
