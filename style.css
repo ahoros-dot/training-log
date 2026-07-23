@@ -350,14 +350,15 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 }
 
 .data-actions { display: flex; flex-direction: column; gap: 10px; }
-.birth-row { display: flex; align-items: center; gap: 4px; }
-.birth-row input { min-width: 0; text-align: center; }
-.birth-row input#profileBirthY { flex: 1.6; }
+.birth-row { display: flex; align-items: center; gap: 6px; }
+.birth-row input { min-width: 0; text-align: center; font-size: 16px; padding: 9px 4px; }
+.birth-row input#profileBirthY { flex: 1.5; }
 .birth-row input#profileBirthM, .birth-row input#profileBirthD { flex: 1; }
-.birth-row span { font-size: 13px; color: var(--text-sub); flex-shrink: 0; }
+.birth-row span { font-size: 14px; color: var(--text-sub); flex-shrink: 0; }
+.birth-actions { display: flex; gap: 8px; margin-top: 8px; }
 .birth-cal {
   position: relative;
-  width: 42px;
+  flex: 1.4;
   height: 42px;
   display: flex;
   align-items: center;
@@ -365,7 +366,10 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   border: 1.5px solid var(--primary);
   border-radius: 10px;
   background: #fff;
-  font-size: 17px;
+  color: var(--primary);
+  font-size: 13px;
+  font-weight: 700;
+  white-space: nowrap;
   cursor: pointer;
 }
 .birth-cal input {
@@ -379,15 +383,15 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   cursor: pointer;
 }
 .birth-clear {
-  flex-shrink: 0;
-  width: 42px;
+  flex: 1;
   height: 42px;
   border: 1.5px solid var(--danger);
   border-radius: 10px;
   background: #fff;
   color: var(--danger);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
+  white-space: nowrap;
 }
 .profile-stats { margin: 10px 0 6px; }
 .profile-stats:empty { margin: 0; }
