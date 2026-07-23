@@ -350,6 +350,11 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
 }
 
 .data-actions { display: flex; flex-direction: column; gap: 10px; }
+.birth-row { display: flex; align-items: center; gap: 4px; }
+.birth-row input { min-width: 0; text-align: center; }
+.birth-row input#profileBirthY { flex: 1.6; }
+.birth-row input#profileBirthM, .birth-row input#profileBirthD { flex: 1; }
+.birth-row span { font-size: 13px; color: var(--text-sub); flex-shrink: 0; }
 .profile-stats { margin: 10px 0 6px; }
 .profile-stats:empty { margin: 0; }
 .file-label { cursor: pointer; }

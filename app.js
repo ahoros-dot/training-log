@@ -1243,7 +1243,16 @@ function renderDataStats() {
   renderGoals();
   $("profileHeight").value = data.heightCm ?? "";
   $("profileGender").value = data.gender ?? "";
-  $("profileBirth").value = data.birthDate ?? "";
+  if (data.birthDate) {
+    const [y, m, d] = data.birthDate.split("-").map(Number);
+    $("profileBirthY").value = y;
+    $("profileBirthM").value = m;
+    $("profileBirthD").value = d;
+  } else {
+    $("profileBirthY").value = "";
+    $("profileBirthM").value = "";
+    $("profileBirthD").value = "";
+  }
   $("profileTargetWeight").value = data.targetWeight ?? "";
   $("profileTargetFat").value = data.targetBodyFat ?? "";
   renderProfileStats();
@@ -1504,9 +1513,38 @@ function init() {
   };
   bindProfile("profileHeight", "heightCm", true);
   bindProfile("profileGender", "gender", false);
-  bindProfile("profileBirth", "birthDate", false);
   bindProfile("profileTargetWeight", "targetWeight", true);
   bindProfile("profileTargetFat", "targetBodyFat", true);
+
+  // 生年月日（年・月・日の手入力）: 3つ揃ったら検証して保存
+  const onBirthChange = () => {
+    const y = numOrNull($("profileBirthY").value);
+    const m = numOrNull($("profileBirthM").value);
+    const d = numOrNull($("profileBirthD").value);
+    if (y == null && m == null && d == null) {
+      if (data.birthDate != null) {
+        data.birthDate = null;
+        saveData();
+        renderProfileStats();
+        toast("生年月日の設定を削除しました");
+      }
+      return;
+    }
+    if (y == null || m == null || d == null) return; // 入力途中は保存しない
+    const dt = new Date(Date.UTC(y, m - 1, d));
+    const valid = y >= 1900 && y <= 2100 &&
+      dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
+    if (!valid) {
+      toast("正しい日付を入力してください");
+      return;
+    }
+    data.birthDate = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+    saveData();
+    renderProfileStats();
+    toast("生年月日を保存しました");
+  };
+  ["profileBirthY", "profileBirthM", "profileBirthD"].forEach(id =>
+    $(id).addEventListener("change", onBirthChange));
 
   // データ管理
   $("btnExport").addEventListener("click", () => {
