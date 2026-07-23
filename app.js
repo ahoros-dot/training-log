@@ -300,7 +300,8 @@ function renderExerciseList(r) {
          <div class="ex-name" data-index="${i}" title="タップして調べる">${escapeHtml(ex.name)} ${slot} <span class="ex-lookup">🔍</span></div>
          <div class="ex-detail">${escapeHtml(exerciseLabel(ex))}</div>
        </div>
-       <button class="ex-del" data-index="${i}" aria-label="削除">🗑</button>`;
+       <button class="ex-edit" data-index="${i}" aria-label="修正" title="修正する">✏️</button>
+       <button class="ex-del" data-index="${i}" aria-label="削除" title="削除する">🗑</button>`;
     ul.appendChild(li);
   });
 }
@@ -340,10 +341,21 @@ function bindCondInput(id, key, isNum) {
 }
 
 /* ============ 種目フォーム ============ */
-function showExerciseForm(show) {
+// null = 追加モード / 数値 = その番号の種目を修正中
+let editingExerciseIndex = null;
+
+function showExerciseForm(show, editIndex = null) {
+  editingExerciseIndex = show ? editIndex : null;
   $("exerciseForm").classList.toggle("hidden", !show);
   $("btnAddExercise").classList.toggle("hidden", show);
+  $("exerciseFormTitle").textContent = editIndex == null ? "種目を追加" : "種目を修正";
+  $("btnSaveExercise").textContent = editIndex == null ? "追加する" : "修正する";
   if (show) $("exName").focus();
+}
+// フォームを閉じて追加モードに戻す
+function closeExerciseForm() {
+  clearExerciseForm();
+  showExerciseForm(false);
 }
 function updateTypeFields() {
   const t = $("exType").value;
@@ -380,7 +392,37 @@ function clearExerciseForm() {
   ["exName", "exWeight", "exReps", "exSets", "exDistance", "exCardioMin",
    "exRoundMin", "exRounds", "exRest", "exCount", "exRepsMin", "exOtherMin", "exMemo"]
     .forEach(id => { $(id).value = ""; });
+  $("exTimeSlot").value = "";
   $("exPerHand").checked = false;
+  updatePerHandUi();
+}
+
+// 既存の種目をフォームに読み込む（修正用）
+function fillExerciseForm(ex) {
+  clearExerciseForm();
+  $("exType").value = ex.type;
+  updateTypeFields();
+  $("exName").value = ex.name;
+  $("exTimeSlot").value = ex.timeSlot || "";
+  if (ex.type === "strength") {
+    $("exWeight").value = ex.weight ?? "";
+    $("exReps").value = ex.reps ?? "";
+    $("exSets").value = ex.sets ?? "";
+    $("exPerHand").checked = !!ex.perHand;
+  } else if (ex.type === "cardio") {
+    $("exDistance").value = ex.distance ?? "";
+    $("exCardioMin").value = ex.minutes ?? "";
+  } else if (ex.type === "boxing") {
+    $("exRoundMin").value = ex.roundMin ?? "";
+    $("exRounds").value = ex.rounds ?? "";
+    $("exRest").value = ex.restMin ?? "";
+  } else if (ex.type === "reps") {
+    $("exCount").value = ex.count ?? "";
+    $("exRepsMin").value = ex.minutes ?? "";
+  } else {
+    $("exOtherMin").value = ex.minutes ?? "";
+    $("exMemo").value = ex.memo || "";
+  }
   updatePerHandUi();
 }
 
@@ -1335,13 +1377,18 @@ function init() {
   document.querySelectorAll(".tab").forEach(t =>
     t.addEventListener("click", () => switchView(t.dataset.view)));
 
-  // 日付移動
+  // 日付移動（修正中なら解除してから移動する）
+  const goToDate = (dateStr) => {
+    if (editingExerciseIndex != null) closeExerciseForm();
+    state.date = dateStr;
+    renderRecordView();
+  };
   $("recordDate").addEventListener("change", e => {
-    if (e.target.value) { state.date = e.target.value; renderRecordView(); }
+    if (e.target.value) goToDate(e.target.value);
   });
-  $("datePrev").addEventListener("click", () => { state.date = addDays(state.date, -1); renderRecordView(); });
-  $("dateNext").addEventListener("click", () => { state.date = addDays(state.date, 1); renderRecordView(); });
-  $("dateToday").addEventListener("click", () => { state.date = jstTodayStr(); renderRecordView(); });
+  $("datePrev").addEventListener("click", () => goToDate(addDays(state.date, -1)));
+  $("dateNext").addEventListener("click", () => goToDate(addDays(state.date, 1)));
+  $("dateToday").addEventListener("click", () => goToDate(jstTodayStr()));
 
   // トレ日/休養日
   document.querySelectorAll(".daytype-btn").forEach(b =>
@@ -1355,7 +1402,7 @@ function init() {
 
   // 種目フォーム
   $("btnAddExercise").addEventListener("click", () => showExerciseForm(true));
-  $("btnCancelExercise").addEventListener("click", () => { clearExerciseForm(); showExerciseForm(false); });
+  $("btnCancelExercise").addEventListener("click", closeExerciseForm);
   $("exType").addEventListener("change", updateTypeFields);
   $("exName").addEventListener("change", syncPerHandFromName);
   $("exPerHand").addEventListener("change", updatePerHandUi);
@@ -1364,13 +1411,18 @@ function init() {
     const ex = readExerciseForm();
     if (!ex) { toast("種目名を入力してください"); return; }
     const r = ensureRecord(state.date);
-    r.exercises.push(ex);
-    if (r.dayType == null) r.dayType = "training";
+    const editIndex = editingExerciseIndex;
+    if (editIndex != null) {
+      if (!r.exercises[editIndex]) { toast("対象の種目が見つかりません"); closeExerciseForm(); renderRecordView(); return; }
+      r.exercises[editIndex] = ex;
+    } else {
+      r.exercises.push(ex);
+      if (r.dayType == null) r.dayType = "training";
+    }
     saveData();
-    clearExerciseForm();
-    showExerciseForm(false);
+    closeExerciseForm();
     renderRecordView();
-    toast(`${ex.name} を追加しました`);
+    toast(editIndex != null ? `${ex.name} を修正しました` : `${ex.name} を追加しました`);
   });
 
   // 部位から種目を選ぶ
@@ -1398,13 +1450,23 @@ function init() {
   $("lookupClose").addEventListener("click", closeLookup);
   $("lookupOverlay").addEventListener("click", e => { if (e.target === e.currentTarget) closeLookup(); });
 
-  // 種目削除・種目名タップで検索
+  // 種目の修正・削除・種目名タップで検索
   $("exerciseList").addEventListener("click", e => {
     const nameEl = e.target.closest(".ex-name");
     if (nameEl) {
       const r = getRecord(state.date);
       const ex = r?.exercises[Number(nameEl.dataset.index)];
       if (ex) openLookup(ex.name);
+      return;
+    }
+    const editBtn = e.target.closest(".ex-edit");
+    if (editBtn) {
+      const i = Number(editBtn.dataset.index);
+      const ex = getRecord(state.date)?.exercises[i];
+      if (!ex) return;
+      fillExerciseForm(ex);
+      showExerciseForm(true, i);
+      $("exerciseForm").scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
     const btn = e.target.closest(".ex-del");
@@ -1417,6 +1479,7 @@ function init() {
     r.exercises.splice(i, 1);
     pruneIfEmpty(state.date);
     saveData();
+    closeExerciseForm();   // 番号がずれるため修正中なら解除
     renderRecordView();
   });
 

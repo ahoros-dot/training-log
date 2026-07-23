@@ -148,20 +148,28 @@ main { max-width: 640px; margin: 0 auto; padding: 12px; }
 .ex-main { flex: 1; min-width: 0; }
 .ex-name { font-weight: 700; font-size: 14px; }
 .ex-detail { font-size: 13px; color: var(--text-sub); }
-.ex-del {
+.ex-edit, .ex-del {
   flex-shrink: 0;
   border: none;
   background: none;
-  color: var(--danger);
-  font-size: 18px;
-  padding: 6px;
+  font-size: 17px;
+  padding: 6px 3px;
+  line-height: 1;
 }
+.ex-edit { color: var(--primary); }
+.ex-del { color: var(--danger); }
 
 /* ---- フォーム ---- */
 .exercise-form {
   margin-top: 12px;
   padding-top: 12px;
   border-top: 1px dashed var(--border);
+}
+.form-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-bottom: 10px;
 }
 .form-row { margin-bottom: 10px; }
 .form-row label, .form-grid2 label, .form-grid3 label {
