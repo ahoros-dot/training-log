@@ -1,5 +1,5 @@
 /* オフライン対応の Service Worker（ネットワーク優先・オフライン時はキャッシュ） */
-const CACHE_NAME = "training-log-v16";
+const CACHE_NAME = "training-log-v17";
 const ASSETS = [
   "./",
   "./index.html",

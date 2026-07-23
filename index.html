@@ -89,10 +89,14 @@
 
         <div class="type-fields" data-for="strength">
           <div class="form-grid3">
-            <div><label>重量(kg)</label><input type="number" id="exWeight" step="0.5" min="0" inputmode="decimal"></div>
+            <div><label id="exWeightLabel">重量(kg)</label><input type="number" id="exWeight" step="0.5" min="0" inputmode="decimal"></div>
             <div><label>回数</label><input type="number" id="exReps" min="0" inputmode="numeric"></div>
             <div><label>セット</label><input type="number" id="exSets" min="0" inputmode="numeric"></div>
           </div>
+          <label class="perhand-row">
+            <input type="checkbox" id="exPerHand">
+            <span>片手ずつの重量（ダンベル・ケーブルなど）<br><small>右手20kg・左手20kgなら「20」と入力</small></span>
+          </label>
         </div>
         <div class="type-fields hidden" data-for="cardio">
           <div class="form-grid2">

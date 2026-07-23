@@ -245,10 +245,19 @@ function exerciseDetailText(ex) {
   return parts.length ? parts.join(" × ").replace(/ × 休憩/, "、休憩").replace(/kg × /, "kg×").replace(/回 × /, "回×") : "詳細なし";
 }
 // 表示用（× のつなぎ方を種別ごとに整える）
+// 片手ずつ負荷をかける種目か（ダンベル・ケーブルなど）。重量は片手あたりで記録する。
+function isPerHandExercise(name) {
+  const entry = findExerciseEntry(name);
+  const canonical = entry ? entry.name : (name || "").trim();
+  if (!canonical) return false;
+  if (/ダンベル|ケーブル/.test(canonical)) return true;
+  return PER_HAND_EXERCISES.includes(canonical);
+}
+
 function exerciseLabel(ex) {
   if (ex.type === "strength") {
     const p = [];
-    if (ex.weight != null) p.push(`${ex.weight}kg`);
+    if (ex.weight != null) p.push(`${ex.weight}kg${ex.perHand ? "（片手）" : ""}`);
     if (ex.reps != null) p.push(`${ex.reps}回`);
     if (ex.sets != null) p.push(`${ex.sets}セット`);
     return p.join("×") || "詳細なし";
@@ -350,6 +359,7 @@ function readExerciseForm() {
     ex.weight = numOrNull($("exWeight").value);
     ex.reps = numOrNull($("exReps").value);
     ex.sets = numOrNull($("exSets").value);
+    if ($("exPerHand").checked) ex.perHand = true;
   } else if (type === "cardio") {
     ex.distance = numOrNull($("exDistance").value);
     ex.minutes = numOrNull($("exCardioMin").value);
@@ -370,6 +380,19 @@ function clearExerciseForm() {
   ["exName", "exWeight", "exReps", "exSets", "exDistance", "exCardioMin",
    "exRoundMin", "exRounds", "exRest", "exCount", "exRepsMin", "exOtherMin", "exMemo"]
     .forEach(id => { $(id).value = ""; });
+  $("exPerHand").checked = false;
+  updatePerHandUi();
+}
+
+// 片手表記のUIを現在の状態に合わせる
+function updatePerHandUi() {
+  $("exWeightLabel").textContent = $("exPerHand").checked ? "重量(kg/片手)" : "重量(kg)";
+}
+
+// 種目名から片手種目かを自動判定してチェックを合わせる
+function syncPerHandFromName() {
+  $("exPerHand").checked = isPerHandExercise($("exName").value);
+  updatePerHandUi();
 }
 
 /* ============ 1日のまとめ（仕様の回答形式） ============ */
@@ -541,13 +564,14 @@ function aggregate(dates) {
     r.exercises.forEach(ex => {
       const key = ex.name;
       if (!agg.byExercise.has(key)) {
-        agg.byExercise.set(key, { type: ex.type, times: 0, sets: 0, reps: 0, maxWeight: null, distance: 0, minutes: 0, rounds: 0, totalCount: 0 });
+        agg.byExercise.set(key, { type: ex.type, times: 0, sets: 0, reps: 0, maxWeight: null, perHand: false, distance: 0, minutes: 0, rounds: 0, totalCount: 0 });
       }
       const s = agg.byExercise.get(key);
       s.times++;
       if (ex.sets != null) s.sets += ex.sets;
       if (ex.reps != null && ex.sets != null) s.reps += ex.reps * ex.sets;
       if (ex.weight != null) s.maxWeight = s.maxWeight == null ? ex.weight : Math.max(s.maxWeight, ex.weight);
+      if (ex.perHand) s.perHand = true;
       if (ex.distance != null) s.distance += ex.distance;
       if (ex.minutes != null) s.minutes += ex.minutes;
       if (ex.rounds != null) s.rounds += ex.rounds;
@@ -662,7 +686,7 @@ function buildAnalysisHtml(agg, prevAgg, isWeek, inProgress, effective) {
     const rows = [...agg.byExercise.entries()].map(([name, s]) => {
       const detail = [];
       if (s.type === "strength") {
-        if (s.maxWeight != null) detail.push(`最大${s.maxWeight}kg`);
+        if (s.maxWeight != null) detail.push(`最大${s.maxWeight}kg${s.perHand ? "（片手）" : ""}`);
         if (s.sets) detail.push(`計${s.sets}セット`);
         if (s.reps) detail.push(`総回数${s.reps.toLocaleString()}回`);
       } else if (s.type === "cardio") {
@@ -1057,6 +1081,7 @@ function pickExercise(name) {
     $("exType").value = info.type;
     updateTypeFields();
   }
+  syncPerHandFromName();
   $("partPicker").classList.add("hidden");
   toast(`「${name}」を選択しました`);
 }
@@ -1332,6 +1357,8 @@ function init() {
   $("btnAddExercise").addEventListener("click", () => showExerciseForm(true));
   $("btnCancelExercise").addEventListener("click", () => { clearExerciseForm(); showExerciseForm(false); });
   $("exType").addEventListener("change", updateTypeFields);
+  $("exName").addEventListener("change", syncPerHandFromName);
+  $("exPerHand").addEventListener("change", updatePerHandUi);
   $("exerciseForm").addEventListener("submit", e => {
     e.preventDefault();
     const ex = readExerciseForm();
