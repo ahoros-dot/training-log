@@ -378,6 +378,17 @@ button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
   padding: 0;
   cursor: pointer;
 }
+.birth-clear {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border: 1.5px solid var(--danger);
+  border-radius: 10px;
+  background: #fff;
+  color: var(--danger);
+  font-size: 15px;
+  font-weight: 700;
+}
 .profile-stats { margin: 10px 0 6px; }
 .profile-stats:empty { margin: 0; }
 .file-label { cursor: pointer; }

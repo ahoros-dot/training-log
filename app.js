@@ -1561,6 +1561,20 @@ function init() {
     try { e.target.showPicker(); } catch {}
   });
 
+  // 生年月日のクリア（確認アラート付き）
+  $("btnBirthClear").addEventListener("click", () => {
+    const hasInput = data.birthDate != null ||
+      $("profileBirthY").value || $("profileBirthM").value || $("profileBirthD").value;
+    if (!hasInput) { toast("生年月日は設定されていません"); return; }
+    if (!confirm("生年月日の設定をクリア（削除）します。よろしいですか？")) return;
+    ["profileBirthY", "profileBirthM", "profileBirthD"].forEach(id => { $(id).value = ""; });
+    $("profileBirthPicker").value = "";
+    data.birthDate = null;
+    saveData();
+    renderProfileStats();
+    toast("生年月日をクリアしました");
+  });
+
   // データ管理
   $("btnExport").addEventListener("click", () => {
     const n = Object.keys(data.records).length;
