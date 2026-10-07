@@ -51,3 +51,11 @@
 | `style.css` | モバイルファーストのスタイル |
 | `app.js` | 記録・集計・分析・グラフ描画のロジック |
 | `manifest.json` / `sw.js` / `icon.svg` | PWA対応（ホーム画面追加・オフライン動作） |
+
+## 開発メモ
+
+- 公開版は別リポジトリ `ahoros-dot/training-log`（https://ahoros-dot.github.io/training-log/）。同期スクリプトはなく、このフォルダのファイルをそのまま直下にコピーしている
+- **静的ファイルを編集したら `sw.js` の `CACHE_NAME` を必ず上げる。** 上げないと Service Worker が古いファイルを配り続ける
+- **Service Worker は、画面のファイル（HTML・JS・CSS・JSON）を `cache: "no-cache"` で取る**（2026-10-08）。GitHub Pages は `max-age=600` を付けて返すので、
+  ただの `fetch(e.request)` だと公開直後の10分間、新しい `index.html` と HTTP キャッシュに残った古い `app.js` が混ざって動く（こえスタジオの公開版で起きた）。
+  先読み（install）も `cache: "reload"` で HTTP キャッシュを通さない。localhost はキャッシュを付けないので、手元では起きない
