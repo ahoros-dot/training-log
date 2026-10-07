@@ -5,7 +5,7 @@
    （cache: "no-cache"。変わっていなければ 304 で中身は送られない）。GitHub Pages は max-age=600 を付けて返すので、
    ただ fetch すると公開した直後の10分間、新しい index.html と HTTP キャッシュに残った古い app.js が混ざって動く
    （2026-10-08 にこえスタジオで見つかった）。先読み（install）も同じ理由でキャッシュを通さない。 */
-const CACHE_NAME = "training-log-v20";
+const CACHE_NAME = "training-log-v21";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,9 +24,12 @@ self.addEventListener("install", (e) => {
 });
 
 self.addEventListener("activate", (e) => {
+  // 消すのは自分の古いキャッシュだけ。Cache Storage はオリジンごとなので、同じ ahoros-dot.github.io にある
+  // video-gallery やこえスタジオのキャッシュも同じ置き場に並んでいる（2026-10-08、互いにほかのアプリのキャッシュまで
+  // 消していて、別のアプリを開いたあとはオフラインで開けなくなっていた）
   e.waitUntil(
     caches.keys().then((keys) =>
-      Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
+      Promise.all(keys.filter((k) => k.startsWith("training-log-") && k !== CACHE_NAME).map((k) => caches.delete(k)))
     )
   );
   self.clients.claim();

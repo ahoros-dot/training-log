@@ -59,3 +59,5 @@
 - **Service Worker は、画面のファイル（HTML・JS・CSS・JSON）を `cache: "no-cache"` で取る**（2026-10-08）。GitHub Pages は `max-age=600` を付けて返すので、
   ただの `fetch(e.request)` だと公開直後の10分間、新しい `index.html` と HTTP キャッシュに残った古い `app.js` が混ざって動く（こえスタジオの公開版で起きた）。
   先読み（install）も `cache: "reload"` で HTTP キャッシュを通さない。localhost はキャッシュを付けないので、手元では起きない
+- **Service Worker の activate で消すのは、`training-log-` で始まる古いキャッシュだけ**（2026-10-08）。Cache Storage はオリジンごとで、同じ `ahoros-dot.github.io` の
+  video-gallery・こえスタジオと置き場を共有している。前は「自分の `CACHE_NAME` 以外を全部」消していたので、ほかのアプリを開くと training-log のキャッシュが消え、オフラインで開けなくなっていた
